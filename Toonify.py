@@ -7,13 +7,13 @@ from matplotlib import pyplot as plt
 def nothing(x):
 	pass
 
-input_image = cv2.imread('lena.jpg')
+input_image = cv2.imread('10.jpg')
 cv2.imshow('Input Image',input_image)
 
-cv2.namedWindow('Toonified Image')
-cv2.createTrackbar('Iterations','Toonified Image',0,15,nothing)
-cv2.createTrackbar('colorquant value','Toonified Image',0,50,nothing)
-cv2.createTrackbar('Canny Threshold','Toonified Image',0,100,nothing)
+#cv2.namedWindow('Toonified Image')
+#cv2.createTrackbar('Iterations','Toonified Image',0,15,nothing)
+#cv2.createTrackbar('colorquant value','Toonified Image',0,50,nothing)
+#cv2.createTrackbar('Canny Threshold','Toonified Image',0,100,nothing)
 #Phase 1 : color staircasing #########################################################################################################
 
 # Then We Do Bilateral Filtering with k1 = kernal size and N = number of iterations
@@ -52,7 +52,7 @@ for i in xrange(0,rows):
 # Canny Edge Detection
 # Dialation of the detected edges
 # Edgefilter
-p=30
+p=60
 #p = cv2.getTrackbarPos('Canny Threshold','Toonified Image')
 
 median_filtimg2 = cv2.medianBlur(input_image,5)
