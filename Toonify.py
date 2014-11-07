@@ -7,7 +7,7 @@ from matplotlib import pyplot as plt
 def nothing(x):
 	pass
 
-input_image = cv2.imread('10.jpg')
+input_image = cv2.imread('7.png')
 cv2.imshow('Input Image',input_image)
 
 #cv2.namedWindow('Toonified Image')
