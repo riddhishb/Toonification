@@ -1,79 +1,133 @@
+#!/usr/bin/python
+# -*- coding: utf-8 -*-
+
+
 import cv2
 import numpy as np 
 import math
+import Tkinter
+import sys
+from PyQt4 import QtGui
+from Tkinter import *
+from tkFileDialog import askopenfilename
 from matplotlib import pyplot as plt
 
 
 def nothing(x):
-	pass
+    pass
 
-input_image = cv2.imread('7.png')
-cv2.imshow('Input Image',input_image)
+def image():
 
-#cv2.namedWindow('Toonified Image')
-#cv2.createTrackbar('Iterations','Toonified Image',0,15,nothing)
-#cv2.createTrackbar('colorquant value','Toonified Image',0,50,nothing)
-#cv2.createTrackbar('Canny Threshold','Toonified Image',0,100,nothing)
-#Phase 1 : color staircasing #########################################################################################################
+    print a
+    print N
+    print p
+    #Phase 1 : color staircasing #########################################################################################################
 
-# Then We Do Bilateral Filtering with k1 = kernal size and N = number of iterations
-# We do Median Filtering
-# Color quantization floor factor = a
+    # Then We Do Bilateral Filtering with k1 = kernal size and N = number of iterations
+    # We do Median Filtering
+    # Color quantization floor factor = a
 
-#N = cv2.getTrackbarPos('Iterations','Toonified Image')
-N=5
-#a = cv2.getTrackbarPos('colorquant value','Toonified Image')
-a= 24
+    for x in range(0,N):
+        bilateral_filtimg = cv2.bilateralFilter(input_image,9,75,75)
 
-for x in range(0,N):
-	bilateral_filtimg = cv2.bilateralFilter(input_image,9,75,75)
+    median_filtimg = cv2.medianBlur(bilateral_filtimg,5)
 
-median_filtimg = cv2.medianBlur(bilateral_filtimg,5)
+    [rows,cols,c] = median_filtimg.shape
+    colorquantimg = median_filtimg
+    for i in xrange(0,rows):
+        for j in xrange(0,cols):
+            xb = median_filtimg.item(i,j,0)
+            xg = median_filtimg.item(i,j,1)
+            xr = median_filtimg.item(i,j,2)  
+            xb = math.floor(xb/a)*a 
+            xg = math.floor(xg/a)*a
+            xr = math.floor(xr/a)*a
+            colorquantimg.itemset((i,j,0),xb)
+            colorquantimg.itemset((i,j,1),xg)
+            colorquantimg.itemset((i,j,2),xr)
 
-[rows,cols,c] = median_filtimg.shape
-colorquantimg = median_filtimg
-for i in xrange(0,rows):
-	for j in xrange(0,cols):
-		xb = median_filtimg.item(i,j,0)
-		xg = median_filtimg.item(i,j,1)
-		xr = median_filtimg.item(i,j,2)  
-		xb = math.floor(xb/a)*a 
-		xg = math.floor(xg/a)*a
-		xr = math.floor(xr/a)*a
-		colorquantimg.itemset((i,j,0),xb)
-		colorquantimg.itemset((i,j,1),xg)
-		colorquantimg.itemset((i,j,2),xr)
+        # Phase2 : Edge Extraction ############################################################################################################
 
-#cv2.imshow('Phase1 output',colorquantimg)		
+        # Appy Median Filter to the image 
+        # Canny Edge Detection
+        # Dialation of the detected edges
+        # Edgefilter
+        #p = cv2.getTrackbarPos('Canny Threshold','Toonified Image')
 
-# Phase2 : Edge Extraction ############################################################################################################
+    median_filtimg2 = cv2.medianBlur(input_image,5)
 
-# Appy Median Filter to the image 
-# Canny Edge Detection
-# Dialation of the detected edges
-# Edgefilter
-p=60
-#p = cv2.getTrackbarPos('Canny Threshold','Toonified Image')
+    edges = cv2.Canny(median_filtimg2,p,2*p)
+    dialateimg =  cv2.dilate(edges,np.ones((3,3),'uint8'))
+    edges_inv = cv2.bitwise_not(dialateimg)
+    ret,thresh = cv2.threshold(edges_inv,127,255,0)
+        #cv2.imshow('edges',thresh)
+    contours, hierarchy = cv2.findContours(thresh,1,2)
+    img_contours = cv2.drawContours(thresh, contours, -1, (0,0,0), 3)
+    print img_contours
+        #cv2.imshow('counters',img_contours)
 
-median_filtimg2 = cv2.medianBlur(input_image,5)
+        ############################### Recombine both the images ##############################################################################
+    global finalimg
+    finalimg = colorquantimg
+    for i in xrange(0,rows):
+        for j in xrange(0,cols):
+            if edges_inv.item(i,j) == 0:
+                finalimg.itemset((i,j,0),0)
+                finalimg.itemset((i,j,1),0)
+                finalimg.itemset((i,j,2),0)
+    cv2.imshow('Toonified Image',finalimg)       
+    cv2.waitKey(0)  
 
-edges = cv2.Canny(median_filtimg2,p,2*p)
-dialateimg =  cv2.dilate(edges,np.ones((3,3),'uint8'))
-edges_inv = cv2.bitwise_not(dialateimg)
-ret,thresh = cv2.threshold(edges_inv,127,255,0)
-#cv2.imshow('edges',thresh)
-contours, hierarchy = cv2.findContours(thresh,1,2)
-img_contours = cv2.drawContours(thresh, contours, -1, (0,0,0), 3)
-print img_contours
-#cv2.imshow('counters',img_contours)
+# Main Routine
+def filecall():
+   # Tk().withdraw()
+    filename = askopenfilename()
+    global input_image 
+    input_image = cv2.imread(filename)
 
-############################### Recombine both the images ##############################################################################
-finalimg = colorquantimg
-for i in xrange(0,rows):
-	for j in xrange(0,cols):
-		if edges_inv.item(i,j) == 0:
-			finalimg.itemset((i,j,0),0)
-			finalimg.itemset((i,j,1),0)
-			finalimg.itemset((i,j,2),0)
-cv2.imshow('Toonified Image',finalimg)
-cv2.waitKey(0)
+def proceed():
+    global a
+    global N
+    global p
+    a = w1.get()
+    N = w2.get()
+    p = w3.get()
+    image()
+
+def quit():
+	cv2.destroyWindow('Toonified Image')
+	cv2.imshow('Final Output, You can save this one',finalimg)
+	cv2.waitKey(0)    
+	root.destroy()
+
+root = Tk()
+root.geometry("500x500")
+
+l1 = Label(root,text = 'Select Image')
+l1.pack()
+
+b1 = Button(root,text = 'Browse',command=filecall)
+b1.pack()
+
+b2 = Button(root,text = 'Proceed',command=proceed)
+b2.pack()
+
+b3 = Button(root,text = 'Quit',command=quit)
+b3.pack()
+
+w1 = Scale(root,label ='Color Quantization Degree(Optimum = 24)',length = 400, from_=10, to=50,orient=HORIZONTAL)  #text=""
+w1.pack()
+
+w2 = Scale(root,label = 'Staircase Cartoon Feature Number(Optimum = 5)',length = 400, from_=1, to=10,orient=HORIZONTAL) #text=""
+w2.pack()
+
+w3 = Scale(root,label = 'Border Parameter(As per need)', length = 400, from_=10, to=100,orient=HORIZONTAL) #",
+w3.pack()
+
+root.mainloop()
+
+
+
+    
+    
+
