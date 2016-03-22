@@ -8,7 +8,7 @@ Converting an image into cartoon
 > Run it by python Toonify.py and voila
 
 > Works good on many images and bad on few of them, I have included all around test cases.
-> I am going to turn this into a GUI when I get the time to do so.
+> __Note__: do sudo apt-get install python-opencv to install cv2 package
 
 
 If any problems contact Riddhish Bhalodia
